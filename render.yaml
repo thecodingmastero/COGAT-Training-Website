@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: cogat-ai-trainer
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: OPENROUTER_API_KEY
+        sync: false
