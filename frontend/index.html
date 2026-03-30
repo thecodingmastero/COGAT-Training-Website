@@ -1,36 +1,189 @@
-<!-- CogAT AI-Powered Trainer v47 — AI Edition with backend AI proxy -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>CogAT Professional Trainer v47 — AI Edition</title>
-<!-- [all your styles as before...] -->
-[ ... your entire original <style> block here ... ]
+<!-- [Insert all your original styles here...] -->
+<style>
+/* ... (your massive <style> block as in your original file, unchanged) ... */
+</style>
 </head>
 <body>
 <div class="container">
   <div class="version">v47 — AI Edition</div>
   <div class="app">
-    [ ... your entire HTML content as before, except ... ]
-    <!-- REMOVE the API Key Modal block completely! -->
-    <!-- (delete the <div class="modal-overlay" ...> ... </div> part) -->
+    <!-- Header -->
+    <header>
+      <h1>🧠 CogAT Professional Trainer</h1>
+      <div class="subtitle">Master Verbal • Quantitative • Nonverbal Reasoning — Now with AI</div>
+    </header>
+    <!-- Controls -->
+    <div class="controls">
+      <div class="tab-group">
+        <div class="tab active" data-type="mixed">Mixed Practice</div>
+        <div class="tab" data-type="verbal">Verbal</div>
+        <div class="tab" data-type="quant">Quantitative</div>
+        <div class="tab" data-type="nonverbal">Nonverbal</div>
+      </div>
+      <label style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:12px;color:var(--text-muted);font-weight:500">GRADE LEVEL</span>
+        <select id="gradeLevel">
+          <option value="k">Kindergarten</option>
+          <option value="1">1st Grade</option>
+          <option value="2">2nd Grade</option>
+          <option value="3" selected>3rd Grade</option>
+          <option value="4">4th Grade</option>
+          <option value="5">5th Grade</option>
+          <option value="6">6th Grade</option>
+          <option value="7">7th Grade</option>
+          <option value="8">8th Grade</option>
+        </select>
+      </label>
+      <label style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:12px;color:var(--text-muted);font-weight:500">DIFFICULTY MODE</span>
+        <select id="difficultyMode">
+          <option value="adaptive" selected>🎯 Adaptive (Recommended)</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </label>
+      <!-- AI Mode Toggle -->
+      <button id="aiModeBtn" class="ai-toggle-btn">
+        <div class="ai-dot"></div>
+        🤖 AI Questions: OFF
+      </button>
+      <button id="startBtn">Start Practice →</button>
+      <button id="nextBtn" style="display:none">Next Question →</button>
+      <div class="stats-bar">
+        <div class="stat">
+          <div class="stat-label">Streak</div>
+          <div class="stat-value success" id="streak">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Score</div>
+          <div class="stat-value" id="score">0/0</div>
+        </div>
+      </div>
+    </div>
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Question panel -->
+      <div class="question-panel">
+        <div class="ai-question-badge" id="aiBadge" style="display:none">
+          <div class="badge-dot"></div> AI GENERATED
+        </div>
+        <div class="question-text" id="question">Click "Start Practice" to begin your CogAT training session.</div>
+        <div class="visual-area" id="visual"></div>
+        <div class="answers-grid" id="answers"></div>
+        <div class="feedback" id="feedback"></div>
+        <div class="hint" id="hint" style="display:none"></div>
+        <button class="ai-explain-btn" id="explainBtn" style="display:none" onclick="getAIExplanation()">
+          🤖 Why is this the answer?
+        </button>
+        <div class="ai-explanation" id="aiExplanation" style="display:none">
+          <div class="ai-explanation-header">
+            🤖 AI's Explanation
+          </div>
+          <div class="ai-explanation-body loading" id="aiExplanationText">
+            Thinking<span class="loading-dots"></span>
+          </div>
+        </div>
+      </div>
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="card ai-status-card" id="aiStatusCard">
+          <div class="card-title">
+            <div class="ai-status-indicator" id="aiStatusDot"></div>
+            🤖 AI Assistant
+          </div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:12px">
+            <span id="aiStatusMsg">Turn on <strong>AI Questions</strong> for infinite, unique questions generated just for you!</span>
+          </div>
+          <div style="display:flex;gap:16px">
+            <div>
+              <div class="ai-counter" id="aiQuestionsCount">0</div>
+              <div class="ai-counter-label">AI Questions</div>
+            </div>
+            <div>
+              <div class="ai-counter" id="aiExplainCount">0</div>
+              <div class="ai-counter-label">Explanations</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Session Progress</div>
+          <div class="info-row">
+            <span class="info-label">Questions Answered</span>
+            <span class="info-value" id="totalAnswered">0</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Accuracy</span>
+            <span class="info-value" id="accuracy">0%</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Grade Level</span>
+            <span class="info-value" id="gradeDisplay">3rd Grade</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Current Mode</span>
+            <span class="info-value" id="modeDisplay">Mixed Practice</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Current Difficulty</span>
+            <span class="info-value" id="diffDisplay">Hard</span>
+          </div>
+          <div class="difficulty-indicator" id="difficultyIndicator">
+            <div class="difficulty-dot"></div>
+            <div class="difficulty-dot"></div>
+            <div class="difficulty-dot active"></div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏆 Achievements</div>
+          <div id="achievements">
+            <div class="achievement">
+              <div class="achievement-icon">🎯</div>
+              <div class="achievement-text">Get 5 streak to unlock</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">💡 Quick Tips</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.6">
+            <strong>Verbal:</strong> Look for relationships between words<br><br>
+            <strong>Quantitative:</strong> Find the pattern in numbers<br><br>
+            <strong>Nonverbal:</strong> Analyze shapes, rotations, and sequences<br><br>
+            <strong>🤖 AI Mode:</strong> Stuck? Click "Why is this the answer?" for a personalized explanation!
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 <script>
-/* --- State --- */
+/* -- Insert ALL your original JS logic here, EXCEPT: --- 
+- Remove the API Key modal code, openApiModal, closeApiModal, saveApiKey, anything referencing aiState.apiKey or modalError or modal UI/input.
+- Replace callAnthropicAPI with callAIProxy (see below).
+*/
+
 var state = { /* ... as before ... */ };
+// ... all state and helpers...
+
 var aiState = {
   enabled: false,
   questionsGenerated: 0,
   explanationsGiven: 0,
-  loading: false,
+  loading: false
 };
 
-/* --- UI refs --- */
-var ui = { /* ... as before ... */ };
+// UI refs, etc...
 
-/* --- AI Mode Toggle: just a switch, no modal --- */
+// AI Toggle (no modal)
 ui.aiModeBtn.addEventListener('click', function(){
   if(!aiState.enabled){
     aiState.enabled = true;
@@ -47,7 +200,7 @@ ui.aiModeBtn.addEventListener('click', function(){
   }
 });
 
-/* --- AI: Proxy API --- */
+// Backend AI call
 async function callAIProxy(systemPrompt, userPrompt){
   var controller = new AbortController();
   var timeout = setTimeout(function(){ controller.abort(); }, 20000);
@@ -56,7 +209,7 @@ async function callAIProxy(systemPrompt, userPrompt){
       method: 'POST',
       signal: controller.signal,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ systemPrompt: systemPrompt, userPrompt: userPrompt })
+      body: JSON.stringify({ systemPrompt, userPrompt })
     });
     clearTimeout(timeout);
     if(!response.ok){
@@ -72,78 +225,8 @@ async function callAIProxy(systemPrompt, userPrompt){
   }
 }
 
-/* --- Generate AI Question via backend --- */
-async function generateAIQuestion(){
-  var gradeText = getGradeText();
-  var diff = getCurrentDifficulty();
-  // For nonverbal mode, fallback to built-in
-  var aiMode = state.mode;
-  if(aiMode === 'nonverbal'){
-    var q = genNonverbal(diff);
-    q._fallback = true;
-    return q;
-  }
-  var questionType;
-  if(aiMode === 'verbal') questionType = 'verbal';
-  else if(aiMode === 'quant') questionType = 'quantitative (number patterns, word problems, sequences)';
-  else questionType = Math.random() < 0.5 ? 'verbal' : 'quantitative (number patterns, word problems, sequences)';
-  var systemPrompt = 'You generate CogAT practice questions. Always respond with ONLY valid JSON and nothing else — no markdown, no backticks, no explanation. The JSON must have exactly these fields: type (string: "verbal" or "quant"), q (string: the question), options (array of exactly 4 strings), answer (string: must exactly match one element of options), hint (string: a short helpful hint without giving away the answer).';
-  var userPrompt = 'Generate a ' + diff + ' difficulty CogAT ' + questionType + ' question for a ' + gradeText + ' student. '
-    + 'For verbal: use analogies ("A is to B as C is to ___"), synonyms, antonyms, or sentence completion. '
-    + 'For quantitative: use number sequences, arithmetic word problems, or pattern recognition. '
-    + 'Make sure all 4 options are plausible but only one is correct. '
-    + 'The answer must exactly match one of the options. Return only JSON.';
-  var text = await callAIProxy(systemPrompt, userPrompt);
-  // Strip accidental markdown fences
-  text = text.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'');
-  var parsed = JSON.parse(text);
-  if(parsed.options.indexOf(parsed.answer) === -1){
-    parsed.options[0] = parsed.answer;
-    parsed.options = shuffle(parsed.options);
-  }
-  parsed.id = 'ai_' + Date.now();
-  parsed._isAI = true;
-  return parsed;
-}
-
-/* --- AI: Get Explanation via backend --- */
-async function getAIExplanation(){
-  if(aiState.loading) return;
-  aiState.loading = true;
-
-  ui.explainBtn.disabled = true;
-  ui.explainBtn.textContent = '🤖 Thinking...';
-  ui.aiExplanation.style.display = 'block';
-  ui.aiExplanationText.className = 'ai-explanation-body loading';
-  ui.aiExplanationText.innerHTML = 'Thinking<span class="loading-dots"></span>';
-
-  var gradeText = getGradeText();
-  var q = state.currentQuestion;
-  try {
-    var explanation = await callAIProxy(
-      'You are a friendly tutor helping a child prepare for the CogAT test. Explain answers in a warm, encouraging, simple way. Be brief (2-4 sentences max). End with an uplifting note.',
-      'A ' + gradeText + ' student is practicing for the CogAT. They got this question wrong:\n\nQuestion: ' + q.q + '\nCorrect answer: ' + q.answer + '\n\nExplain in simple, kind language why "' + q.answer + '" is the right answer. Keep it short and encouraging!'
-    );
-    ui.aiExplanationText.className = 'ai-explanation-body';
-    ui.aiExplanationText.textContent = explanation;
-    ui.explainBtn.style.display = 'none';
-    aiState.explanationsGiven += 1;
-    ui.aiExplainCount.textContent = aiState.explanationsGiven;
-  } catch(err) {
-    ui.aiExplanationText.className = 'ai-explanation-body';
-    ui.aiExplanationText.textContent = '⚠️ ' + (err.message || 'Could not load explanation. Try again!');
-    ui.explainBtn.disabled = false;
-    ui.explainBtn.textContent = '🤖 Why is this the answer?';
-  }
-  aiState.loading = false;
-}
-
-/* --- [all your other game logic, UI, helpers, etc, unchanged] --- */
-/*      functions: getGradeText, getOrdinalSuffix, randInt, shuffle, etc.  */
-/*      functions: adjustDifficulty, showAdaptiveMessage, etc.           */
-/*      functions: genVerbal, genQuantitative, genNonverbal, drawShape, etc. */
-/*      functions: renderQuestion, checkAnswer, updateStats, etc.        */
-/*      event listeners, app init logic, ... unchanged.                  */
+// everywhere you had callAnthropicAPI(...) in generateAIQuestion/getAIExplanation etc, now use callAIProxy(...)
+// ... all your other JavaScript as before ...
 
 </script>
 </body>
