@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_MODEL = "qwen/qwen3-next-80b-a3b-instruct:free";
+const OPENROUTER_MODEL = "stepfun/step-3.5-flash:free";
 const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
 app.post('/api/ai', async (req, res) => {
