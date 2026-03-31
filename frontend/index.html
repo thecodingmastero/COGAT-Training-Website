@@ -1,24 +1,340 @@
+<!-- CogAT AI-Powered Trainer v47
+     AI features powered by backend proxy at /api/ai
+     Original game: earn 1 min screen time per 5 correct in a row!
+     Now with AI: infinite question variety + personalized explanations -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>CogAT Professional Trainer v47 — AI Edition</title>
-<!-- [Insert all your original styles here...] -->
 <style>
-/* ... (your massive <style> block as in your original file, unchanged) ... */
+  :root{
+    --primary:#4f46e5;
+    --primary-dark:#4338ca;
+    --success:#10b981;
+    --error:#ef4444;
+    --warning:#f59e0b;
+    --bg:#f8fafc;
+    --card:#ffffff;
+    --border:#e2e8f0;
+    --text:#1e293b;
+    --text-muted:#64748b;
+    --shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --ai:#06b6d4;
+    --ai-dark:#0891b2;
+    --ai-bg:#ecfeff;
+    --ai-border:#a5f3fc;
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    margin:0;
+    padding:20px;
+    min-height:100vh;
+  }
+  .container{max-width:1200px;margin:0 auto}
+  .app{
+    background:var(--card);
+    border-radius:16px;
+    padding:32px;
+    box-shadow:0 20px 25px -5px rgb(0 0 0/0.1),0 8px 10px -6px rgb(0 0 0/0.1);
+  }
+  header{
+    text-align:center;
+    margin-bottom:32px;
+    padding-bottom:24px;
+    border-bottom:2px solid var(--border);
+  }
+  h1{
+    margin:0 0 8px;
+    font-size:36px;
+    font-weight:700;
+    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+  .subtitle{color:var(--text-muted);font-size:16px}
+  .version{
+    position:absolute;top:10px;right:10px;
+    font-size:11px;color:var(--text-muted);opacity:0.6;
+  }
+  .controls{
+    display:flex;gap:16px;align-items:center;
+    margin-bottom:24px;flex-wrap:wrap;
+    padding:20px;background:var(--bg);border-radius:12px;
+  }
+  .tab-group{display:flex;gap:8px;flex-wrap:wrap}
+  .tab{
+    padding:10px 20px;border-radius:8px;
+    border:2px solid var(--border);background:var(--card);
+    cursor:pointer;font-weight:500;transition:all 0.2s;font-size:14px;
+  }
+  .tab:hover{border-color:var(--primary);transform:translateY(-2px)}
+  .tab.active{background:var(--primary);color:white;border-color:var(--primary)}
+  select,button{
+    padding:10px 16px;border-radius:8px;border:2px solid var(--border);
+    background:var(--card);font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;
+  }
+  button{background:var(--primary);color:white;border-color:var(--primary)}
+  button:hover{background:var(--primary-dark);transform:translateY(-2px);box-shadow:var(--shadow)}
+  button:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+  .ai-toggle-btn{
+    background:var(--card);
+    color:var(--ai-dark);
+    border:2px solid var(--ai-border);
+    display:flex;align-items:center;gap:8px;
+    font-weight:600;
+    transition:all 0.2s;
+  }
+  .ai-toggle-btn:hover{
+    background:var(--ai-bg);
+    border-color:var(--ai);
+    transform:translateY(-2px);
+    box-shadow:0 0 12px rgba(6,182,212,0.25);
+  }
+  .ai-toggle-btn.active{
+    background:linear-gradient(135deg,#06b6d4,#0284c7);
+    color:white;
+    border-color:var(--ai);
+    box-shadow:0 0 16px rgba(6,182,212,0.35);
+  }
+  .ai-toggle-btn .ai-dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--ai-border);transition:all 0.2s;
+  }
+  .ai-toggle-btn.active .ai-dot{
+    background:white;
+    box-shadow:0 0 6px white;
+    animation:pulse-dot 1.5s infinite;
+  }
+  @keyframes pulse-dot{
+    0%,100%{opacity:1;transform:scale(1)}
+    50%{opacity:0.6;transform:scale(1.3)}
+  }
+  .stats-bar{
+    display:flex;gap:16px;margin-left:auto;align-items:center;
+  }
+  .stat{text-align:center}
+  .stat-label{font-size:12px;color:var(--text-muted);font-weight:500;text-transform:uppercase}
+  .stat-value{font-size:24px;font-weight:700;color:var(--primary)}
+  .stat-value.success{color:var(--success)}
+  .main-content{
+    display:grid;grid-template-columns:1fr 350px;gap:24px;
+  }
+  .question-panel{
+    background:var(--bg);border-radius:12px;padding:28px;min-height:400px;
+    position:relative;
+  }
+  .ai-question-badge{
+    position:absolute;top:16px;right:16px;
+    background:linear-gradient(135deg,#06b6d4,#0284c7);
+    color:white;font-size:11px;font-weight:700;
+    padding:4px 10px;border-radius:20px;
+    display:flex;align-items:center;gap:4px;
+    letter-spacing:0.5px;
+  }
+  .ai-question-badge .badge-dot{
+    width:6px;height:6px;border-radius:50%;background:white;
+    animation:pulse-dot 1.5s infinite;
+  }
+  .loading-state{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:60px 20px;text-align:center;
+  }
+  .ai-spinner{
+    width:56px;height:56px;
+    border:4px solid var(--ai-border);
+    border-top-color:var(--ai);
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+    margin-bottom:20px;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-label{
+    font-size:18px;font-weight:600;color:var(--ai-dark);margin-bottom:8px;
+  }
+  .loading-sub{
+    font-size:14px;color:var(--text-muted);
+  }
+  .loading-dots::after{
+    content:'';
+    animation:dots 1.5s infinite;
+  }
+  @keyframes dots{
+    0%{content:''}
+    33%{content:'.'}
+    66%{content:'..'}
+    100%{content:'...'}
+  }
+  .question-text{
+    font-size:20px;font-weight:600;color:var(--text);
+    margin-bottom:24px;line-height:1.6;white-space:pre-wrap;
+  }
+  .visual-area{
+    margin:24px 0;display:flex;justify-content:center;
+    align-items:center;min-height:100px;
+  }
+  .shape-grid{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+  .answers-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:24px;
+  }
+  .answer-btn{
+    padding:20px;border-radius:12px;border:2px solid var(--border);
+    background:var(--card);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    min-height:80px;font-size:16px;font-weight:500;
+    transition:all 0.2s;position:relative;
+  }
+  .answer-btn:hover:not(.disabled){
+    border-color:var(--primary);transform:translateY(-4px);box-shadow:var(--shadow);
+  }
+  .answer-btn.correct{background:var(--success);color:white;border-color:var(--success)}
+  .answer-btn.incorrect{background:var(--error);color:white;border-color:var(--error)}
+  .answer-btn.disabled{pointer-events:none;opacity:0.6}
+  .feedback{
+    margin-top:20px;padding:16px;border-radius:8px;
+    font-weight:500;display:none;
+  }
+  .feedback.show{display:block}
+  .feedback.success{background:#d1fae5;color:#065f46;border:2px solid var(--success)}
+  .feedback.error{background:#fee2e2;color:#991b1b;border:2px solid var(--error)}
+  .hint{
+    margin-top:16px;padding:12px;
+    background:#fef3c7;border-left:4px solid var(--warning);
+    border-radius:4px;font-size:14px;color:#92400e;
+  }
+  .ai-explain-btn{
+    margin-top:16px;
+    background:linear-gradient(135deg,#06b6d4,#0284c7);
+    color:white;border:none;
+    padding:12px 20px;border-radius:10px;
+    font-size:14px;font-weight:600;
+    cursor:pointer;
+    display:flex;align-items:center;gap:8px;
+    transition:all 0.2s;
+    width:100%;justify-content:center;
+  }
+  .ai-explain-btn:hover{
+    background:linear-gradient(135deg,#0891b2,#0369a1);
+    transform:translateY(-2px);
+    box-shadow:0 4px 12px rgba(6,182,212,0.4);
+  }
+  .ai-explain-btn:disabled{
+    opacity:0.7;cursor:not-allowed;transform:none;
+  }
+  .ai-explanation{
+    margin-top:16px;
+    border:2px solid var(--ai-border);
+    background:var(--ai-bg);
+    border-radius:12px;
+    overflow:hidden;
+    animation:slideIn 0.3s ease;
+  }
+  @keyframes slideIn{
+    from{opacity:0;transform:translateY(-8px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  .ai-explanation-header{
+    background:linear-gradient(135deg,#06b6d4,#0284c7);
+    color:white;padding:10px 16px;
+    font-size:13px;font-weight:700;
+    display:flex;align-items:center;gap:8px;
+    letter-spacing:0.3px;
+  }
+  .ai-explanation-body{
+    padding:16px;
+    font-size:15px;color:#0c4a6e;
+    line-height:1.7;
+  }
+  .ai-explanation-body.loading{
+    color:var(--text-muted);font-style:italic;
+  }
+  .sidebar{display:flex;flex-direction:column;gap:20px}
+  .card{
+    background:var(--card);border-radius:12px;
+    padding:20px;border:2px solid var(--border);
+  }
+  .card-title{font-weight:700;font-size:16px;margin-bottom:16px;color:var(--text)}
+  .info-row{
+    display:flex;justify-content:space-between;
+    padding:8px 0;border-bottom:1px solid var(--border);
+  }
+  .info-row:last-child{border-bottom:none}
+  .info-label{color:var(--text-muted);font-size:14px}
+  .info-value{font-weight:600;color:var(--text)}
+  .progress-bar{
+    width:100%;height:12px;background:var(--border);
+    border-radius:6px;overflow:hidden;margin-top:8px;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--primary),var(--success));
+    transition:width 0.3s;
+  }
+  .achievement{
+    padding:12px;background:var(--bg);border-radius:8px;
+    margin-top:8px;text-align:center;
+  }
+  .achievement-icon{font-size:32px;margin-bottom:4px}
+  .achievement-text{font-size:12px;color:var(--text-muted);font-weight:500}
+  .adaptive-badge{
+    display:inline-block;padding:4px 12px;border-radius:12px;
+    font-size:11px;font-weight:600;
+    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    color:white;margin-left:8px;
+  }
+  .difficulty-indicator{display:flex;gap:4px;margin-top:8px}
+  .difficulty-dot{
+    width:12px;height:12px;border-radius:50%;
+    background:var(--border);transition:all 0.3s;
+  }
+  .difficulty-dot.active{background:var(--primary)}
+  .ai-status-card{
+    border-color:var(--ai-border);
+    background:linear-gradient(135deg,#ecfeff,#f0f9ff);
+  }
+  .ai-status-card .card-title{
+    color:var(--ai-dark);
+    display:flex;align-items:center;gap:8px;
+  }
+  .ai-status-indicator{
+    width:10px;height:10px;border-radius:50%;
+    background:#94a3b8;flex-shrink:0;
+  }
+  .ai-status-indicator.on{
+    background:var(--ai);
+    box-shadow:0 0 8px rgba(6,182,212,0.5);
+    animation:pulse-dot 1.5s infinite;
+  }
+  .ai-counter{
+    font-size:28px;font-weight:700;
+    color:var(--ai-dark);margin:8px 0 4px;
+  }
+  .ai-counter-label{
+    font-size:12px;color:var(--text-muted);font-weight:500;
+  }
+  svg{display:block}
+  @media(max-width:968px){
+    .main-content{grid-template-columns:1fr}
+    .sidebar{order:-1}
+    .app{padding:20px}
+    h1{font-size:28px}
+    .version{top:5px;right:5px}
+  }
 </style>
 </head>
 <body>
 <div class="container">
   <div class="version">v47 — AI Edition</div>
   <div class="app">
-    <!-- Header -->
     <header>
       <h1>🧠 CogAT Professional Trainer</h1>
       <div class="subtitle">Master Verbal • Quantitative • Nonverbal Reasoning — Now with AI</div>
     </header>
-    <!-- Controls -->
+
     <div class="controls">
       <div class="tab-group">
         <div class="tab active" data-type="mixed">Mixed Practice</div>
@@ -26,6 +342,7 @@
         <div class="tab" data-type="quant">Quantitative</div>
         <div class="tab" data-type="nonverbal">Nonverbal</div>
       </div>
+
       <label style="display:flex;flex-direction:column;gap:4px">
         <span style="font-size:12px;color:var(--text-muted);font-weight:500">GRADE LEVEL</span>
         <select id="gradeLevel">
@@ -40,6 +357,7 @@
           <option value="8">8th Grade</option>
         </select>
       </label>
+
       <label style="display:flex;flex-direction:column;gap:4px">
         <span style="font-size:12px;color:var(--text-muted);font-weight:500">DIFFICULTY MODE</span>
         <select id="difficultyMode">
@@ -49,13 +367,15 @@
           <option value="hard">Hard</option>
         </select>
       </label>
-      <!-- AI Mode Toggle -->
+
       <button id="aiModeBtn" class="ai-toggle-btn">
         <div class="ai-dot"></div>
         🤖 AI Questions: OFF
       </button>
+
       <button id="startBtn">Start Practice →</button>
       <button id="nextBtn" style="display:none">Next Question →</button>
+
       <div class="stats-bar">
         <div class="stat">
           <div class="stat-label">Streak</div>
@@ -67,9 +387,8 @@
         </div>
       </div>
     </div>
-    <!-- Main Content -->
+
     <div class="main-content">
-      <!-- Question panel -->
       <div class="question-panel">
         <div class="ai-question-badge" id="aiBadge" style="display:none">
           <div class="badge-dot"></div> AI GENERATED
@@ -84,14 +403,14 @@
         </button>
         <div class="ai-explanation" id="aiExplanation" style="display:none">
           <div class="ai-explanation-header">
-            🤖 AI's Explanation
+            🤖 AI Explanation
           </div>
           <div class="ai-explanation-body loading" id="aiExplanationText">
             Thinking<span class="loading-dots"></span>
           </div>
         </div>
       </div>
-      <!-- Sidebar -->
+
       <div class="sidebar">
         <div class="card ai-status-card" id="aiStatusCard">
           <div class="card-title">
@@ -165,14 +484,22 @@
     </div>
   </div>
 </div>
-<script>
-/* -- Insert ALL your original JS logic here, EXCEPT: --- 
-- Remove the API Key modal code, openApiModal, closeApiModal, saveApiKey, anything referencing aiState.apiKey or modalError or modal UI/input.
-- Replace callAnthropicAPI with callAIProxy (see below).
-*/
 
-var state = { /* ... as before ... */ };
-// ... all state and helpers...
+<script>
+/* ─── State ─────────────────────────────────────────────────── */
+var state = {
+  mode: 'mixed',
+  streak: 0,
+  correct: 0,
+  total: 0,
+  currentQuestion: null,
+  answered: false,
+  adaptiveDifficulty: 3,
+  recentPerformance: [],
+  isAdaptive: true,
+  gradeLevel: 3,
+  usedQuestions: []
+};
 
 var aiState = {
   enabled: false,
@@ -181,9 +508,37 @@ var aiState = {
   loading: false
 };
 
-// UI refs, etc...
+/* ─── UI refs ────────────────────────────────────────────────── */
+var ui = {
+  question:     document.getElementById('question'),
+  answers:      document.getElementById('answers'),
+  visual:       document.getElementById('visual'),
+  hint:         document.getElementById('hint'),
+  feedback:     document.getElementById('feedback'),
+  streak:       document.getElementById('streak'),
+  score:        document.getElementById('score'),
+  totalAnswered:document.getElementById('totalAnswered'),
+  accuracy:     document.getElementById('accuracy'),
+  modeDisplay:  document.getElementById('modeDisplay'),
+  diffDisplay:  document.getElementById('diffDisplay'),
+  gradeDisplay: document.getElementById('gradeDisplay'),
+  progressBar:  document.getElementById('progressBar'),
+  achievements: document.getElementById('achievements'),
+  startBtn:     document.getElementById('startBtn'),
+  nextBtn:      document.getElementById('nextBtn'),
+  difficultyIndicator: document.getElementById('difficultyIndicator'),
+  aiBadge:      document.getElementById('aiBadge'),
+  explainBtn:   document.getElementById('explainBtn'),
+  aiExplanation: document.getElementById('aiExplanation'),
+  aiExplanationText: document.getElementById('aiExplanationText'),
+  aiModeBtn:    document.getElementById('aiModeBtn'),
+  aiStatusDot:  document.getElementById('aiStatusDot'),
+  aiStatusMsg:  document.getElementById('aiStatusMsg'),
+  aiQuestionsCount: document.getElementById('aiQuestionsCount'),
+  aiExplainCount:   document.getElementById('aiExplainCount')
+};
 
-// AI Toggle (no modal)
+/* ─── AI Mode Toggle (simple switch, no modal) ───────────────── */
 ui.aiModeBtn.addEventListener('click', function(){
   if(!aiState.enabled){
     aiState.enabled = true;
@@ -200,7 +555,7 @@ ui.aiModeBtn.addEventListener('click', function(){
   }
 });
 
-// Backend AI call
+/* ─── AI: Backend Proxy Call ─────────────────────────────────── */
 async function callAIProxy(systemPrompt, userPrompt){
   var controller = new AbortController();
   var timeout = setTimeout(function(){ controller.abort(); }, 20000);
@@ -209,25 +564,593 @@ async function callAIProxy(systemPrompt, userPrompt){
       method: 'POST',
       signal: controller.signal,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ systemPrompt, userPrompt })
+      body: JSON.stringify({ systemPrompt: systemPrompt, userPrompt: userPrompt })
     });
     clearTimeout(timeout);
     if(!response.ok){
-      var err = await response.json().catch(() => ({}));
-      throw new Error((err.error) || ("API error " + response.status));
+      var err = await response.json().catch(function(){ return {}; });
+      throw new Error((err.error) || ('API error ' + response.status));
     }
     var data = await response.json();
     return data.response;
-  } catch (e) {
+  } catch(e) {
     clearTimeout(timeout);
     if(e.name === 'AbortError') throw new Error('Request timed out. Check your internet connection.');
     throw e;
   }
 }
 
-// everywhere you had callAnthropicAPI(...) in generateAIQuestion/getAIExplanation etc, now use callAIProxy(...)
-// ... all your other JavaScript as before ...
+/* ─── AI: Generate Question via Backend ─────────────────────── */
+async function generateAIQuestion(){
+  var gradeText = getGradeText();
+  var diff = getCurrentDifficulty();
 
+  var aiMode = state.mode;
+  if(aiMode === 'nonverbal'){
+    var q = genNonverbal(diff);
+    q._fallback = true;
+    return q;
+  }
+
+  var questionType;
+  if(aiMode === 'verbal') questionType = 'verbal';
+  else if(aiMode === 'quant') questionType = 'quantitative (number patterns, word problems, sequences)';
+  else {
+    questionType = Math.random() < 0.5 ? 'verbal' : 'quantitative (number patterns, word problems, sequences)';
+  }
+
+  var systemPrompt = 'You generate CogAT practice questions. Always respond with ONLY valid JSON and nothing else — no markdown, no backticks, no explanation. The JSON must have exactly these fields: type (string: "verbal" or "quant"), q (string: the question), options (array of exactly 4 strings), answer (string: must exactly match one element of options), hint (string: a short helpful hint without giving away the answer).';
+
+  var userPrompt = 'Generate a ' + diff + ' difficulty CogAT ' + questionType + ' question for a ' + gradeText + ' student. '
+    + 'For verbal: use analogies ("A is to B as C is to ___"), synonyms, antonyms, or sentence completion. '
+    + 'For quantitative: use number sequences, arithmetic word problems, or pattern recognition. '
+    + 'Make sure all 4 options are plausible but only one is correct. '
+    + 'The answer must exactly match one of the options. Return only JSON.';
+
+  var text = await callAIProxy(systemPrompt, userPrompt);
+
+  text = text.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'');
+
+  var parsed = JSON.parse(text);
+
+  if(parsed.options.indexOf(parsed.answer) === -1){
+    parsed.options[0] = parsed.answer;
+    parsed.options = shuffle(parsed.options);
+  }
+
+  parsed.id = 'ai_' + Date.now();
+  parsed._isAI = true;
+  return parsed;
+}
+
+/* ─── AI: Get Explanation via Backend ───────────────────────── */
+async function getAIExplanation(){
+  if(aiState.loading) return;
+  aiState.loading = true;
+
+  ui.explainBtn.disabled = true;
+  ui.explainBtn.textContent = '🤖 Thinking...';
+  ui.aiExplanation.style.display = 'block';
+  ui.aiExplanationText.className = 'ai-explanation-body loading';
+  ui.aiExplanationText.innerHTML = 'Thinking<span class="loading-dots"></span>';
+
+  var gradeText = getGradeText();
+  var q = state.currentQuestion;
+
+  try {
+    var explanation = await callAIProxy(
+      'You are a friendly tutor helping a child prepare for the CogAT test. Explain answers in a warm, encouraging, simple way. Be brief (2-4 sentences max). End with an uplifting note.',
+      'A ' + gradeText + ' student is practicing for the CogAT. They got this question wrong:\n\nQuestion: ' + q.q + '\nCorrect answer: ' + q.answer + '\n\nExplain in simple, kind language why "' + q.answer + '" is the right answer. Keep it short and encouraging!'
+    );
+
+    ui.aiExplanationText.className = 'ai-explanation-body';
+    ui.aiExplanationText.textContent = explanation;
+    ui.explainBtn.style.display = 'none';
+
+    aiState.explanationsGiven += 1;
+    ui.aiExplainCount.textContent = aiState.explanationsGiven;
+
+  } catch(err) {
+    ui.aiExplanationText.className = 'ai-explanation-body';
+    ui.aiExplanationText.textContent = '⚠️ ' + (err.message || 'Could not load explanation. Try again!');
+    ui.explainBtn.disabled = false;
+    ui.explainBtn.textContent = '🤖 Why is this the answer?';
+  }
+
+  aiState.loading = false;
+}
+
+/* ─── Helpers ────────────────────────────────────────────────── */
+function getGradeText(){
+  if(state.gradeLevel === 0) return 'Kindergarten';
+  return state.gradeLevel + getOrdinalSuffix(state.gradeLevel) + ' grade';
+}
+
+function getOrdinalSuffix(num){
+  var j = num % 10, k = num % 100;
+  if(j===1 && k!==11) return 'st';
+  if(j===2 && k!==12) return 'nd';
+  if(j===3 && k!==13) return 'rd';
+  return 'th';
+}
+function randInt(n){ return Math.floor(Math.random()*n) }
+function shuffle(arr){
+  var result = arr.slice();
+  for(var i=result.length-1;i>0;i--){
+    var j=randInt(i+1),t=result[i];
+    result[i]=result[j];result[j]=t;
+  }
+  return result;
+}
+function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1) }
+
+/* ─── Adaptive Difficulty ────────────────────────────────────── */
+function adjustDifficulty(correct){
+  if(!state.isAdaptive) return;
+  state.recentPerformance.push(correct?1:0);
+  if(state.recentPerformance.length>5) state.recentPerformance.shift();
+  if(state.recentPerformance.length<3) return;
+  var recentCorrect = state.recentPerformance.reduce(function(a,b){return a+b},0);
+  var recentAccuracy = recentCorrect / state.recentPerformance.length;
+  if(recentAccuracy>=0.75 && state.adaptiveDifficulty<3){
+    state.adaptiveDifficulty++;
+    showAdaptiveMessage('📈 Great job! Difficulty increased!');
+  } else if(recentAccuracy<=0.35 && state.adaptiveDifficulty>1){
+    state.adaptiveDifficulty--;
+    showAdaptiveMessage('💪 Lets practice at this level!');
+  }
+  updateDifficultyDisplay();
+}
+
+function showAdaptiveMessage(msg){
+  var oldText = ui.feedback.textContent;
+  ui.feedback.textContent = msg;
+  setTimeout(function(){ ui.feedback.textContent = oldText; }, 2000);
+}
+
+function getCurrentDifficulty(){
+  if(state.isAdaptive){
+    return state.adaptiveDifficulty===1?'easy':state.adaptiveDifficulty===3?'hard':'medium';
+  }
+  var mode = document.getElementById('difficultyMode').value;
+  return mode==='adaptive'?'medium':mode;
+}
+
+function updateDifficultyDisplay(){
+  var diffNames={1:'Easy',2:'Medium',3:'Hard'};
+  var diffText = state.isAdaptive ? diffNames[state.adaptiveDifficulty] : capitalize(getCurrentDifficulty());
+  ui.diffDisplay.innerHTML = diffText;
+  if(state.isAdaptive){
+    ui.diffDisplay.innerHTML = diffText+'<span class="adaptive-badge">ADAPTIVE</span>';
+  }
+  var dots = ui.difficultyIndicator.querySelectorAll('.difficulty-dot');
+  for(var idx=0;idx<dots.length;idx++){
+    dots[idx].classList.toggle('active', idx===state.adaptiveDifficulty-1);
+  }
+  ui.difficultyIndicator.style.display = state.isAdaptive ? 'flex' : 'none';
+}
+
+/* ─── Question Databases ─────────────────────────────────────── */
+var verbalDatabase = {
+  analogies: {
+    k:[['dog','puppy'],['cat','kitten'],['cow','calf'],['horse','foal'],['sun','moon'],['day','night'],['hot','cold'],['big','small']],
+    elementary:[['dog','puppy'],['cat','kitten'],['lion','cub'],['tiger','cub'],['bear','cub'],['cow','calf'],['horse','foal'],['duck','duckling'],['sheep','lamb'],['goat','kid'],['bee','larva'],['frog','tadpole'],['owl','owlet'],['deer','fawn'],['fox','kit'],['book','page'],['tree','leaf'],['boat','sail'],['car','wheel'],['house','room'],['teacher','student'],['doctor','patient'],['happy','sad'],['hot','cold'],['big','small'],['fast','slow'],['up','down'],['winter','summer'],['day','night'],['bird','nest'],['fish','school'],['wolf','pack'],['colony','ant']],
+    advanced:[['sculptor','statue'],['author','novel'],['composer','symphony'],['architect','edifice'],['fatigued','rest'],['parched','drink'],['famished','sustenance'],['ailment','remedy'],['lens','refraction'],['prism','spectrum'],['turbine','rotation'],['lever','fulcrum'],['prologue','epilogue'],['preface','afterword'],['introduction','conclusion'],['overture','finale'],['platoon','battalion'],['molecule','compound'],['neuron','synapse'],['photon','quantum'],['archipelago','island'],['constellation','star'],['forest','tree'],['library','tome'],['catalyst','reaction'],['gene','heredity'],['theorem','proof'],['hypothesis','experiment'],['metaphor','literal'],['irony','sincerity'],['paradox','logic'],['euphemism','blunt'],['peninsula','isthmus'],['delta','estuary'],['plateau','plain'],['canyon','gorge']]
+  },
+  synonyms: {
+    k:[['happy','glad','sad','mad','big'],['big','large','small','tiny','short'],['fast','quick','slow','stop','walk']],
+    elementary:[['happy','joyful','sad','angry','tired'],['big','large','tiny','medium','short'],['fast','quick','slow','lazy','quiet'],['smart','intelligent','dumb','loud','bright'],['hard','difficult','simple','soft','rough'],['brave','courageous','scared','weak','timid'],['kind','nice','mean','rude','cruel'],['begin','start','end','finish','stop'],['shout','yell','whisper','talk','speak']],
+    advanced:[['ancient','archaic','modern','contemporary','recent'],['tranquil','serene','turbulent','chaotic','frenzied'],['meticulous','scrupulous','careless','haphazard','sloppy'],['eloquent','articulate','inarticulate','verbose','terse'],['ephemeral','transient','permanent','enduring','eternal'],['ambiguous','equivocal','clear','explicit','unambiguous'],['tenacious','persistent','yielding','compliant','submissive'],['lucid','pellucid','obscure','murky','opaque'],['pragmatic','practical','idealistic','theoretical','impractical'],['audacious','intrepid','timid','cautious','prudent'],['ubiquitous','omnipresent','rare','scarce','sporadic'],['nefarious','villainous','virtuous','noble','righteous']]
+  },
+  antonyms: {
+    k:[['hot','cold','warm','cool','fire'],['big','small','large','huge','tiny'],['happy','sad','glad','joy','smile']],
+    elementary:[['hot','cold','warm','cool','tepid'],['tall','short','high','long','wide'],['light','dark','bright','dim','glow'],['empty','full','vacant','hollow','bare'],['rough','smooth','bumpy','jagged','coarse']],
+    advanced:[['bellicose','pacific','aggressive','hostile','combative'],['prodigal','frugal','wasteful','extravagant','lavish'],['taciturn','loquacious','reserved','reticent','withdrawn'],['acerbic','mellifluous','caustic','bitter','harsh'],['indigenous','exotic','native','endemic','aboriginal'],['sublime','pedestrian','magnificent','elevated','transcendent'],['torpid','dynamic','sluggish','lethargic','inert'],['copious','scant','abundant','plentiful','profuse'],['malleable','obdurate','flexible','pliable','adaptable'],['perspicacious','obtuse','astute','shrewd','perceptive']]
+  },
+  sentenceCompletion: {
+    elementary:[['The bird flew high in the ___','sky','ground','water','tree'],['She opened the ___ to enter the house','door','window','roof','wall'],['The flowers need ___ to grow','water','fire','stones','metal']],
+    advanced:[['The scientist\'s hypothesis was ___ by rigorous experimentation','validated','ignored','dismissed','created'],['Despite the ___ circumstances, she maintained her composure','adverse','favorable','pleasant','delightful'],['The politician\'s speech was filled with ___ rhetoric','inflammatory','gentle','soothing','peaceful'],['His ___ nature made him unsuitable for diplomatic negotiations','abrasive','gentle','diplomatic','tactful'],['The archaeologist made a ___ discovery that rewrote history','seminal','trivial','minor','insignificant'],['The defendant\'s testimony was deemed ___ by the jury','spurious','credible','honest','truthful'],['The artist\'s work was characterized by its ___ complexity','Byzantine','simple','basic','elementary'],['Her argument was so ___ that it convinced even the skeptics','compelling','weak','feeble','unconvincing']]
+  }
+};
+
+function getVerbalData(type, grade){
+  var data = verbalDatabase[type];
+  if(grade===0) return data.k||data.elementary;
+  if(grade<=3) return data.elementary;
+  return data.advanced;
+}
+
+/* ─── Built-in Question Generators ───────────────��──────────── */
+function genVerbal(difficulty){
+  var grade = state.gradeLevel;
+  var typeCount = grade===0?2:grade<=2?3:4;
+  var type = randInt(typeCount);
+
+  if(type===0){
+    var pairs = getVerbalData('analogies',grade);
+    var a = pairs[randInt(pairs.length)];
+    var b = pairs[randInt(pairs.length)];
+    while(b[0]===a[0]) b=pairs[randInt(pairs.length)];
+    var correct=capitalize(b[1]);
+    var distract=[correct];
+    while(distract.length<4){
+      var c=capitalize(pairs[randInt(pairs.length)][1]);
+      if(distract.indexOf(c)===-1) distract.push(c);
+    }
+    return {type:'verbal',q:capitalize(a[0])+' is to '+capitalize(a[1])+' as '+capitalize(b[0])+' is to ___',options:shuffle(distract),answer:correct,hint:'Look for the relationship between the first pair, then apply it to the second pair.',id:'analog_'+a[0]+'_'+b[0]};
+  } else if(type===1){
+    var items=getVerbalData('synonyms',grade);
+    var item=items[randInt(items.length)];
+    return {type:'verbal',q:'Which word is most similar to "'+item[0]+'"?',options:shuffle([item[1],item[2],item[3],item[4]]),answer:item[1],hint:'Find the word with the closest meaning.',id:'syn_'+item[0]};
+  } else if(type===2){
+    var items=getVerbalData('antonyms',grade);
+    var item=items[randInt(items.length)];
+    return {type:'verbal',q:'Which word means the OPPOSITE of "'+item[0]+'"?',options:shuffle([item[1],item[2],item[3],item[4]]),answer:item[1],hint:'Find the word with the opposite meaning.',id:'ant_'+item[0]};
+  } else {
+    var items=getVerbalData('sentenceCompletion',grade);
+    var item=items[randInt(items.length)];
+    return {type:'verbal',q:'Complete the sentence:\n\n'+item[0],options:shuffle([item[1],item[2],item[3],item[4]]),answer:item[1],hint:'Think about which word makes the most sense in context.',id:'sent_'+item[0].substring(0,20)};
+  }
+}
+
+function genQuantitative(difficulty){
+  var diff=difficulty==='easy'?1:difficulty==='hard'?3:2;
+  var grade=state.gradeLevel;
+  var qType=grade===0?randInt(2):grade<=2?randInt(3):diff===3?randInt(5):randInt(4);
+
+  if(qType===0){
+    var maxStart=grade===0?5:grade<=2?10:grade<=4?15:20;
+    var start=diff===1?2+randInt(maxStart):3+randInt(maxStart+5);
+    var series=[start];
+    var correct;
+    if(diff===1||grade===0){
+      var step=grade===0?1+randInt(3):2+randInt(4);
+      for(var i=1;i<5;i++) series.push(series[i-1]+step);
+      correct=series[4]+step;
+    } else if(diff===2){
+      var mult=grade<=3?2:2+randInt(2);
+      for(var i=1;i<5;i++) series.push(series[i-1]*mult);
+      correct=series[4]*mult;
+    } else {
+      if(randInt(2)===0){
+        for(var i=1;i<5;i++) series.push(i%2===1?series[i-1]+3:series[i-1]*2);
+        correct=series[4]+3;
+      } else {
+        series=[1];
+        for(var i=1;i<5;i++) series.push((i+1)*(i+1));
+        correct=36;
+      }
+    }
+    var opts=[correct];
+    while(opts.length<4){
+      var offset=diff===1?-3+randInt(7):-8+randInt(17);
+      var candidate=correct+offset;
+      if(candidate>0&&opts.indexOf(candidate)===-1) opts.push(candidate);
+    }
+    return {type:'quant',q:'What is the next number in the sequence?\n\n'+series.join(' → ')+' → ?',options:shuffle(opts),answer:correct,hint:'Look carefully at how each number relates to the previous one.',id:'seq_'+series.join('_')};
+  } else if(qType===1){
+    if(diff===1||grade<=1){
+      var n1=grade===0?2+randInt(6):5+randInt(10);
+      var n2=grade===0?1+randInt(4):2+randInt(5);
+      var correct=n1+n2;
+      var opts=[correct];
+      while(opts.length<4){var v=correct+(-3+randInt(7));if(v>0&&opts.indexOf(v)===-1)opts.push(v);}
+      return {type:'quant',q:'Sarah has '+n1+' apples. Her friend gives her '+n2+' more apples. How many apples does Sarah have now?',options:shuffle(opts),answer:correct,hint:'Add the two numbers together.',id:'add_'+n1+'_'+n2};
+    } else if(diff===2||grade<=3){
+      var bags=3+randInt(4);var perBag=grade<=3?3+randInt(5):4+randInt(6);
+      var correct=bags*perBag;
+      var opts=[correct];
+      while(opts.length<4){var v=correct+(-5+randInt(11));if(v>0&&opts.indexOf(v)===-1)opts.push(v);}
+      return {type:'quant',q:'A farmer has '+bags+' bags. Each bag contains '+perBag+' apples. How many apples does the farmer have in total?',options:shuffle(opts),answer:correct,hint:'Multiply the number of bags by apples per bag.',id:'mult_'+bags+'_'+perBag};
+    } else {
+      var start=grade<=4?20+randInt(20):30+randInt(30);
+      var bought=grade<=4?5+randInt(10):8+randInt(15);
+      var gave=grade<=4?3+randInt(6):5+randInt(10);
+      var correct=start+bought-gave;
+      var opts=[correct];
+      while(opts.length<4){var v=correct+(-6+randInt(13));if(v>0&&opts.indexOf(v)===-1)opts.push(v);}
+      return {type:'quant',q:'Maya had '+start+' marbles. She bought '+bought+' more marbles at the store, then gave '+gave+' marbles to her brother. How many marbles does Maya have now?',options:shuffle(opts),answer:correct,hint:'Work through each step: add first, then subtract.',id:'multi_'+start+'_'+bought+'_'+gave};
+    }
+  } else if(qType===2){
+    var nums=grade===0?[2,5,3,7,1,6,4,8]:grade<=2?[5,12,8,15,3,10,6,13]:grade<=4?[15,28,21,35,12,24,18,31]:[23,47,31,56,19,42,28,51];
+    var selected=shuffle(nums).slice(0,4);
+    var correct=Math.max.apply(null,selected);
+    return {type:'quant',q:'Which number is the largest?\n\n'+selected.join(', '),options:shuffle(selected),answer:correct,hint:'Compare all numbers to find the greatest value.',id:'max_'+selected.join('_')};
+  } else if(qType===3){
+    var possibleTotals=grade<=3?[6,8,10,12]:[12,15,18,20,24,30];
+    var total=possibleTotals[randInt(possibleTotals.length)];
+    var possibleDivisors=grade<=3?[2,3,4]:[3,4,5,6];
+    var divisor=possibleDivisors[randInt(possibleDivisors.length)];
+    if(total%divisor!==0) return genQuantitative(difficulty);
+    var correct=total/divisor;
+    var opts=[correct];
+    while(opts.length<4){var v=correct+(-2+randInt(5));if(v>0&&opts.indexOf(v)===-1)opts.push(v);}
+    return {type:'quant',q:total+' cookies are shared equally among '+divisor+' children. How many cookies does each child get?',options:shuffle(opts),answer:correct,hint:'Divide the total by the number of children.',id:'div_'+total+'_'+divisor};
+  } else {
+    var a=3+randInt(grade<=4?5:8);var b=2+randInt(grade<=4?4:6);
+    var results=[];for(var i=1;i<=4;i++) results.push(i*a+b);
+    var correct=5*a+b;
+    var opts=[correct];
+    while(opts.length<4){var v=correct+(-5+randInt(11));if(v>0&&opts.indexOf(v)===-1)opts.push(v);}
+    return {type:'quant',q:'If the pattern continues, what comes next?\n\n'+results.join(', '),options:shuffle(opts),answer:correct,hint:'Find the difference between consecutive numbers.',id:'linear_'+a+'_'+b};
+  }
+}
+
+var shapes=['triangle','square','circle','diamond','hexagon','star','oval'];
+
+function drawShape(shape,size,color,filled){
+  if(!size) size=80;
+  if(!color) color='#1e293b';
+  if(!filled) filled=false;
+  var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width',size);svg.setAttribute('height',size);svg.setAttribute('viewBox','0 0 100 100');
+  var fill=filled?color:'none',stroke=color;
+  var el;
+  if(shape==='triangle'){el=document.createElementNS('http://www.w3.org/2000/svg','polygon');el.setAttribute('points','50,20 20,80 80,80');}
+  else if(shape==='square'){el=document.createElementNS('http://www.w3.org/2000/svg','rect');el.setAttribute('x','20');el.setAttribute('y','20');el.setAttribute('width','60');el.setAttribute('height','60');}
+  else if(shape==='circle'){el=document.createElementNS('http://www.w3.org/2000/svg','circle');el.setAttribute('cx','50');el.setAttribute('cy','50');el.setAttribute('r','30');}
+  else if(shape==='diamond'){el=document.createElementNS('http://www.w3.org/2000/svg','polygon');el.setAttribute('points','50,20 80,50 50,80 20,50');}
+  else if(shape==='hexagon'){el=document.createElementNS('http://www.w3.org/2000/svg','polygon');el.setAttribute('points','50,15 75,30 75,60 50,75 25,60 25,30');}
+  else if(shape==='star'){el=document.createElementNS('http://www.w3.org/2000/svg','polygon');el.setAttribute('points','50,15 58,38 82,38 63,52 70,75 50,60 30,75 37,52 18,38 42,38');}
+  else{el=document.createElementNS('http://www.w3.org/2000/svg','ellipse');el.setAttribute('cx','50');el.setAttribute('cy','50');el.setAttribute('rx','35');el.setAttribute('ry','20');}
+  el.setAttribute('fill',fill);el.setAttribute('stroke',stroke);el.setAttribute('stroke-width','3');
+  svg.appendChild(el);
+  return svg;
+}
+
+function genNonverbal(difficulty){
+  var diff=difficulty==='easy'?1:difficulty==='hard'?3:2;
+  var grade=state.gradeLevel;
+  var qType=grade===0?0:grade<=2?randInt(2):diff===1?0:diff===2?randInt(2):randInt(3);
+
+  if(qType===0){
+    var shapeCount=grade===0?3:diff===1?3:diff===2?4:5;
+    var availableShapes=grade===0?['circle','square','triangle']:grade<=2?['circle','square','triangle','star']:shapes;
+    var shapeSeq=shuffle(availableShapes).slice(0,shapeCount);
+    var nextShape=diff===1||grade===0?shapeSeq[0]:availableShapes[randInt(availableShapes.length)];
+    var wrongShapes=availableShapes.filter(function(s){return s!==nextShape;});
+    var options=shuffle([nextShape,wrongShapes[randInt(wrongShapes.length)],wrongShapes[randInt(wrongShapes.length)],wrongShapes[randInt(wrongShapes.length)]]);
+    return {type:'nonverbal',q:diff===1||grade===0?'Which shape matches the first one?':'What comes next in the sequence?',options:options,answer:nextShape,hint:diff===1||grade===0?'Look for the shape that looks exactly the same.':'Look for patterns in the shape sequence.',visual:{sequence:shapeSeq},id:'shape_'+shapeSeq.join('_')};
+  } else if(qType===1){
+    var availableShapes=grade<=2?['circle','square','triangle','star','diamond']:shapes;
+    var shapeA=availableShapes[randInt(availableShapes.length)];
+    var shapeB=availableShapes[randInt(availableShapes.length)];
+    while(shapeB===shapeA) shapeB=availableShapes[randInt(availableShapes.length)];
+    var correct=shapeA;
+    var wrongShapes=availableShapes.filter(function(s){return s!==correct;});
+    var options=shuffle([correct,shapeB,wrongShapes[randInt(wrongShapes.length)],wrongShapes[randInt(wrongShapes.length)]]);
+    return {type:'nonverbal',q:'Complete the pattern:\n\nRow 1: '+capitalize(shapeA)+' - '+capitalize(shapeB)+'\nRow 2: '+capitalize(shapeB)+' - ?',options:options,answer:correct,hint:'The pattern reverses in the second row.',visual:{matrix:[[shapeA,shapeB],[shapeB,'?']]},id:'matrix2_'+shapeA+'_'+shapeB};
+  } else {
+    var availableShapes=grade<=4?['circle','square','triangle','star','diamond','hexagon']:shapes;
+    var baseShape=availableShapes[randInt(availableShapes.length)];
+    var altShape=availableShapes[randInt(availableShapes.length)];
+    while(altShape===baseShape) altShape=availableShapes[randInt(availableShapes.length)];
+    var correct=baseShape;
+    var wrongShapes=availableShapes.filter(function(s){return s!==correct&&s!==altShape;});
+    var options=shuffle([correct,altShape,wrongShapes[randInt(wrongShapes.length)],wrongShapes[randInt(wrongShapes.length)]]);
+    return {type:'nonverbal',q:'What shape completes the 3x3 grid?\n\nRow 1: '+capitalize(baseShape)+', '+capitalize(altShape)+', '+capitalize(baseShape)+'\nRow 2: '+capitalize(altShape)+', '+capitalize(baseShape)+', '+capitalize(altShape)+'\nRow 3: '+capitalize(baseShape)+', '+capitalize(altShape)+', ?',options:options,answer:correct,hint:'Look at the diagonal pattern across all three rows.',visual:{matrix:[[baseShape,altShape,baseShape],[altShape,baseShape,altShape],[baseShape,altShape,'?']]},id:'matrix3_'+baseShape+'_'+altShape};
+  }
+}
+
+function generateQuestion(){
+  var diff=getCurrentDifficulty();
+  var attempts=0;
+  var q;
+  do {
+    if(state.mode==='verbal') q=genVerbal(diff);
+    else if(state.mode==='quant') q=genQuantitative(diff);
+    else if(state.mode==='nonverbal') q=genNonverbal(diff);
+    else {
+      var choice=randInt(3);
+      if(choice===0) q=genVerbal(diff);
+      else if(choice===1) q=genQuantitative(diff);
+      else q=genNonverbal(diff);
+    }
+    attempts++;
+  } while(state.usedQuestions.indexOf(q.id)!==-1 && attempts<10);
+
+  if(q.id){
+    state.usedQuestions.push(q.id);
+    if(state.usedQuestions.length>50) state.usedQuestions.shift();
+  }
+  return q;
+}
+
+/* ─── Loading State ──────────────────────────────────────────── */
+function showLoadingState(){
+  ui.question.innerHTML =
+    '<div class="loading-state">' +
+      '<div class="ai-spinner"></div>' +
+      '<div class="loading-label">🤖 Generating your question<span class="loading-dots"></span></div>' +
+      '<div class="loading-sub">AI is crafting a unique question for your grade level</div>' +
+    '</div>';
+  ui.answers.innerHTML = '';
+  ui.visual.innerHTML = '';
+  ui.feedback.className = 'feedback';
+  ui.hint.style.display = 'none';
+  ui.explainBtn.style.display = 'none';
+  ui.aiExplanation.style.display = 'none';
+  ui.aiBadge.style.display = 'none';
+}
+
+/* ─── Render Question ────────────────────────────────────────── */
+function renderQuestion(qObj){
+  state.currentQuestion = qObj;
+  state.answered = false;
+
+  ui.startBtn.style.display = 'none';
+  ui.nextBtn.style.display = 'none';
+  ui.explainBtn.style.display = 'none';
+  ui.aiExplanation.style.display = 'none';
+  ui.explainBtn.disabled = false;
+  ui.explainBtn.textContent = '�� Why is this the answer?';
+
+  if(qObj._isAI){
+    ui.aiBadge.style.display = 'flex';
+  } else {
+    ui.aiBadge.style.display = 'none';
+  }
+
+  ui.question.textContent = qObj.q;
+  ui.answers.innerHTML = '';
+  ui.visual.innerHTML = '';
+  ui.feedback.className = 'feedback';
+  ui.hint.style.display = 'none';
+  ui.hint.textContent = qObj.hint;
+
+  if(qObj.visual){
+    var container = document.createElement('div');
+    container.className = 'shape-grid';
+    if(qObj.visual.sequence){
+      for(var i=0;i<qObj.visual.sequence.length;i++){
+        container.appendChild(drawShape(qObj.visual.sequence[i],70));
+      }
+    } else if(qObj.visual.matrix){
+      for(var r=0;r<qObj.visual.matrix.length;r++){
+        for(var c=0;c<qObj.visual.matrix[r].length;c++){
+          var item=qObj.visual.matrix[r][c];
+          if(item!=='?') container.appendChild(drawShape(item,60));
+        }
+      }
+    }
+    ui.visual.appendChild(container);
+  }
+
+  for(var i=0;i<qObj.options.length;i++){
+    var opt = qObj.options[i];
+    var btn = document.createElement('div');
+    btn.className = 'answer-btn';
+
+    var isShape = shapes.indexOf(String(opt)) !== -1;
+    if(qObj.type==='nonverbal' && isShape){
+      var sc=document.createElement('div');
+      sc.appendChild(drawShape(opt,60));
+      btn.appendChild(sc);
+    } else {
+      btn.textContent = opt;
+    }
+    btn.dataset.value = opt;
+    (function(optVal){ btn.addEventListener('click',function(){ checkAnswer(optVal); }); })(opt);
+    ui.answers.appendChild(btn);
+  }
+}
+
+/* ─── Check Answer ───────────────────────────────────────────── */
+function checkAnswer(selectedOption){
+  if(state.answered) return;
+  state.answered = true;
+  state.total++;
+
+  var correct = String(selectedOption) === String(state.currentQuestion.answer);
+  var buttons = ui.answers.querySelectorAll('.answer-btn');
+
+  for(var i=0;i<buttons.length;i++){
+    var btn=buttons[i];
+    btn.classList.add('disabled');
+    if(String(btn.dataset.value)===String(state.currentQuestion.answer)) btn.classList.add('correct');
+    if(String(btn.dataset.value)===String(selectedOption)&&!correct) btn.classList.add('incorrect');
+  }
+
+  if(correct){
+    state.correct++;
+    state.streak++;
+    ui.feedback.className='feedback success show';
+    ui.feedback.textContent='✓ Excellent! That\'s correct!';
+    checkAchievements();
+  } else {
+    state.streak=0;
+    ui.feedback.className='feedback error show';
+    ui.feedback.textContent='✗ Not quite. The correct answer is: '+capitalize(String(state.currentQuestion.answer));
+    ui.hint.style.display='block';
+    ui.explainBtn.style.display='flex';
+  }
+
+  adjustDifficulty(correct);
+  ui.nextBtn.style.display='inline-block';
+  updateStats();
+}
+
+/* ─── Stats & Achievements ───────────────────────────────────── */
+function updateStats(){
+  ui.streak.textContent=state.streak;
+  ui.score.textContent=state.correct+'/'+state.total;
+  ui.totalAnswered.textContent=state.total;
+  ui.accuracy.textContent=state.total>0?Math.round((state.correct/state.total)*100)+'%':'0%';
+  ui.progressBar.style.width=((state.total%10)*10)+'%';
+}
+
+function checkAchievements(){
+  if(state.streak===5) ui.achievements.innerHTML='<div class="achievement"><div class="achievement-icon">🔥</div><div class="achievement-text">5 Streak Master! +1 minute screen time!</div></div>';
+  if(state.streak===10) ui.achievements.innerHTML='<div class="achievement"><div class="achievement-icon">🏆</div><div class="achievement-text">10 Streak Champion! +2 minutes screen time!</div></div>';
+  if(state.correct===20) ui.achievements.innerHTML+='<div class="achievement"><div class="achievement-icon">⭐</div><div class="achievement-text">20 Questions Mastered!</div></div>';
+  if(state.streak===15) ui.achievements.innerHTML='<div class="achievement"><div class="achievement-icon">🎉</div><div class="achievement-text">15 Streak Legend! +3 minutes screen time!</div></div>';
+}
+
+/* ─── Next Question (async to support AI) ────────────────────── */
+async function nextQuestion(){
+  ui.startBtn.style.display='none';
+  ui.nextBtn.style.display='none';
+  aiState.loading = true;
+
+  if(aiState.enabled){
+    showLoadingState();
+    try {
+      var q = await generateAIQuestion();
+      if(!q._fallback){
+        aiState.questionsGenerated++;
+        ui.aiQuestionsCount.textContent = aiState.questionsGenerated;
+      }
+      renderQuestion(q);
+    } catch(err){
+      console.error('AI question generation failed:', err);
+      ui.question.innerHTML =
+        '<div class="loading-state">' +
+          '<div style="font-size:40px;margin-bottom:12px">⚠️</div>' +
+          '<div class="loading-label" style="color:var(--error)">AI Error</div>' +
+          '<div class="loading-sub">' + (err.message || 'Unknown error') + '</div>' +
+          '<div class="loading-sub" style="margin-top:8px">Using a built-in question instead…</div>' +
+        '</div>';
+      await new Promise(function(r){ setTimeout(r, 2000); });
+      var q = generateQuestion();
+      renderQuestion(q);
+    }
+  } else {
+    var q = generateQuestion();
+    renderQuestion(q);
+  }
+
+  aiState.loading = false;
+}
+
+/* ─── Event Listeners ────────────────────────────────────────── */
+document.getElementById('startBtn').addEventListener('click', nextQuestion);
+document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+document.getElementById('difficultyMode').addEventListener('change', function(e){
+  state.isAdaptive = e.target.value === 'adaptive';
+  updateDifficultyDisplay();
+});
+document.getElementById('gradeLevel').addEventListener('change', function(e){
+  var gradeValue = e.target.value;
+  if(gradeValue==='k'){
+    state.gradeLevel=0;
+    ui.gradeDisplay.textContent='Kindergarten';
+  } else {
+    state.gradeLevel=parseInt(gradeValue);
+    ui.gradeDisplay.textContent=gradeValue+getOrdinalSuffix(gradeValue)+' Grade';
+  }
+});
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(ev){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');});
+    ev.target.classList.add('active');
+    state.mode=ev.target.dataset.type;
+    ui.modeDisplay.textContent=ev.target.textContent;
+  });
+});
+
+/* ─── Init ───────────────────────────────────────────────────── */
+updateStats();
+updateDifficultyDisplay();
 </script>
 </body>
 </html>
